@@ -1,0 +1,19 @@
+{
+  "name": "book-borrow",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "book_borrow_db",
+      "database_id": "替换为你的D1_database_id"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
+  "vars": {
+    "ADMIN_PWD": "2026book",
+    "NOTIFY_URL": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=替换为你的企业微信机器人key"
+  }
+}
