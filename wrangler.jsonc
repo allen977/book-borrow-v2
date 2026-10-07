@@ -6,7 +6,7 @@
     {
       "binding": "DB",
       "database_name": "book_borrow_db",
-      "database_id": "替换为你的D1_database_id"
+      "database_id": "090a280e-9964-4820-86da-22cf981ed625"
     }
   ],
   "triggers": {
