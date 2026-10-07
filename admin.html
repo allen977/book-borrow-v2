@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>管理后台</title>
+<style>
+body{font-family:-apple-system,sans-serif;background:#f5f7fa;margin:0;padding:20px}
+.wrap{max-width:1100px;margin:auto}
+h1{font-size:22px}
+.stats{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}
+.stat{flex:1;min-width:120px;background:#fff;padding:16px;border-radius:12px;text-align:center}
+.stat b{font-size:24px;display:block}
+.alert{background:#fee2e2;color:#b91c1c;padding:12px;border-radius:8px;margin-bottom:16px;font-weight:700}
+table{width:100%;background:#fff;border-collapse:collapse;border-radius:12px;overflow:hidden}
+th{background:#6366f1;color:#fff;padding:10px;text-align:left}
+td{padding:10px;border-bottom:1px solid #eee;font-size:14px}
+.over{background:#fef2f2}
+.pwd-box{max-width:360px;margin:80px auto;background:#fff;padding:30px;border-radius:12px}
+input{width:100%;padding:12px;margin:16px 0;box-sizing:border-box}
+button{width:100%;padding:12px;background:#6366f1;color:#fff;border:0;border-radius:8px}
+a.ex{display:inline-block;margin-bottom:16px;background:#6366f1;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <h1>📊 借书管理后台</h1>
+  <div id="content">加载中...</div>
+</div>
+<script>
+const API = location.origin
+const params = new URLSearchParams(location.search)
+const pwd = params.get('pwd') || ''
+
+if(!pwd){
+  document.getElementById('app').innerHTML = `
+    <form class="pwd-box" method="get" onsubmit="return true">
+      <h2>🔒 管理后台</h2>
+      <input name="pwd" type="password" placeholder="管理密码" />
+      <button>进入</button>
+    </form>`
+} else {
+  fetch(API + '/api/all?pwd=' + encodeURIComponent(pwd))
+    .then(r => r.json())
+    .then(d => {
+      if(d.error){ document.getElementById('content').innerHTML = '❌ ' + d.error; return }
+      const list = d.list
+      const total = list.length
+      const active = list.filter(x => x.status === 'borrowed')
+      const returned = total - active.length
+      const overdue = active.filter(x => x.overdue)
+
+      let html = ''
+      if(overdue.length)
+        html += `<div class="alert">⚠️ 当前有 ${overdue.length} 本超期未还</div>`
+
+      html += `
+        <div class="stats">
+          <div class="stat"><b>${total}</b>总记录</div>
+          <div class="stat"><b>${active.length}</b>借出中</div>
+          <div class="stat"><b>${returned}</b>已归还</div>
+          <div class="stat"><b>${overdue.length}</b>超期</div>
+        </div>
+        <a class="ex" href="/api/export?pwd=${encodeURIComponent(pwd)}">📥 导出 CSV</a>
+        <table>
+          <tr><th>姓名</th><th>手机</th><th>书名</th><th>借书时间</th><th>还书时间</th><th>状态</th></tr>
+          ${list.map(r => `
+            <tr class="${r.overdue ? 'over' : ''}">
+              <td>${r.name}</td><td>${r.phone}</td><td>${r.book}</td>
+              <td>${r.borrow_time}</td><td>${r.return_time || '未还'}</td>
+              <td>${r.overdue ? '🚨 超期 ' + r.overdueDays + ' 天' : (r.status === 'borrowed' ? '📖 借出中' : '✅ 已还')}</td>
+            </tr>`).join('')}
+        </table>`
+      document.getElementById('content').innerHTML = html
+    })
+}
+</script>
+</body>
+</html>
